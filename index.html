@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Splitbaba</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Using Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1 id="page-title">Dashboard</h1>
+            <button id="header-action-btn" class="icon-btn hidden">
+                <span class="material-icons-round">history</span>
+            </button>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- VIEW: AUTH (LOGIN/SIGNUP) -->
+            <section id="view-auth" class="view active">
+                <div class="auth-card central-card">
+                    <h2>Welcome to Splitbaba</h2>
+                    <p class="text-muted">Simple expense sharing for roommates.</p>
+
+                    <form id="auth-form">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <div class="input-wrapper">
+                                <span class="material-icons-round icon">email</span>
+                                <input type="email" id="auth-email" placeholder="you@example.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <div class="input-wrapper">
+                                <span class="material-icons-round icon">lock</span>
+                                <input type="password" id="auth-password" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-block btn-primary" id="btn-auth-action">Log In</button>
+                        <p class="auth-switch">Don't have an account? <a href="#" id="link-switch-auth">Sign Up</a></p>
+                    </form>
+                </div>
+            </section>
+
+            <!-- VIEW: SETUP (CREATE/JOIN HOUSEHOLD) -->
+            <section id="view-setup" class="view">
+                <div class="setup-card central-card">
+                    <h2>Join a Household</h2>
+                    <p class="text-muted">Enter the code shared by your roommate.</p>
+
+                    <div class="form-group">
+                        <label>Invite Code</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-round icon">vpn_key</span>
+                            <input type="text" id="setup-code" placeholder="HOUSE-123"
+                                style="text-transform: uppercase;">
+                        </div>
+                    </div>
+                    <button id="btn-join-house" class="btn-block btn-primary">Join Household</button>
+
+                    <div class="divider">OR</div>
+
+                    <button id="btn-create-house" class="btn-block btn-outline">Create New Household</button>
+                </div>
+            </section>
+
+            <!-- VIEW: DASHBOARD -->
+            <section id="view-dashboard" class="view">
+                <div class="balance-card">
+                    <span class="label">Total Balance</span>
+                    <h2 id="total-balance">$0.00</h2>
+                    <p id="balance-status" class="status-text">You are all settled up</p>
+
+                    <button class="btn-primary" id="btn-settle-up-main">
+                        <span class="material-icons-round">payments</span>
+                        Settle Up
+                    </button>
+                    </button>
+                </div>
+
+                <div class="household-info-card">
+                    <div class="house-details">
+                        <h3 id="house-name-display">My House</h3>
+                        <p class="code-label">Invite Code: <strong id="house-code-display">LOADING</strong></p>
+                    </div>
+                    <button class="icon-btn"
+                        onclick="navigator.clipboard.writeText(document.getElementById('house-code-display').innerText); alert('Code Copied!')">
+                        <span class="material-icons-round">content_copy</span>
+                    </button>
+                </div>
+
+                <div class="section-header">
+                    <h3>Recent Activity</h3>
+                    <a href="#" id="link-view-all" class="link-sm">View All</a>
+                </div>
+                <div id="dashboard-feed" class="activity-list">
+                    <!-- Items injected here -->
+                    <div class="empty-state">No expenses yet</div>
+                </div>
+            </section>
+
+            <!-- VIEW: ACTIVITY -->
+            <section id="view-activity" class="view">
+                <div id="activity-full-feed" class="activity-list">
+                    <!-- Fully populated list -->
+                </div>
+            </section>
+
+            <!-- VIEW: ADD EXPENSE -->
+            <section id="view-add-expense" class="view">
+                <form id="add-expense-form">
+                    <div class="form-group amount-group">
+                        <span class="currency">$</span>
+                        <input type="number" id="inp-amount" placeholder="0.00" step="0.01" required autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-round icon">edit</span>
+                            <input type="text" id="inp-desc" placeholder="What is this for?" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Paid By</label>
+                        <div class="pill-selector" id="payer-selector">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Split With</label>
+                        <div class="user-list-check" id="split-users">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-block btn-save">Save Expense</button>
+                </form>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-target="view-dashboard">
+                <span class="material-icons-round">dashboard</span>
+                <span>Home</span>
+            </button>
+            <button class="nav-item fab-wrapper" data-target="view-add-expense">
+                <div class="fab">
+                    <span class="material-icons-round">add</span>
+                </div>
+            </button>
+            <button class="nav-item" data-target="view-activity">
+                <span class="material-icons-round">list</span>
+                <span>Activity</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL: SETTLE UP -->
+    <div id="modal-settle-up" class="modal-overlay hidden">
+        <div class="modal-content bottom-sheet">
+            <div class="modal-header">
+                <h3>Settle Up</h3>
+                <button class="btn-close" id="btn-close-modal">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settle-flow">
+                    <div class="payer-row">
+                        <select id="settle-payer" class="user-select">
+                            <!-- Options -->
+                        </select>
+                        <span class="arrow">→</span>
+                        <select id="settle-payee" class="user-select">
+                            <!-- Options -->
+                        </select>
+                    </div>
+                    <div class="amount-entry">
+                        <span class="currency">$</span>
+                        <input type="number" id="settle-amount" placeholder="0.00">
+                    </div>
+                </div>
+                <button id="btn-confirm-payment" class="btn-block btn-success">Mark as Paid</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-footer">
+        <p>Made by <strong>Mehmet Inanci</strong></p>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Scripts: Loaded sequentially for file:// protocol support -->
+    <script src="js/config.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
